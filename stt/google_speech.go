@@ -45,6 +45,10 @@ func (r *GoogleSpeechToText) RecognizeSpeech(ctx context.Context, audio []byte) 
 	}
 
 	log.Printf("Response: %+v", resp)
+	if len(resp.Results) == 0 || len(resp.Results[0].Alternatives) == 0 {
+		return "Could not transcribe text from the audio, empty audio clip?", nil
+	}
+
 	return resp.Results[0].Alternatives[0].Transcript, nil
 }
 
