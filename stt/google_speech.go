@@ -33,7 +33,7 @@ func (r *GoogleSpeechToText) RecognizeSpeech(ctx context.Context, audio []byte) 
 			Model:          "long",
 			DecodingConfig: &speechpb.RecognitionConfig_AutoDecodingConfig{},
 		},
-		Recognizer: "projects/voicememobot/locations/global/recognizers/voice-memo-global-long",
+		Recognizer: r.createRecognizerName(),
 		AudioSource: &speechpb.RecognizeRequest_Content{
 			Content: audio,
 		},

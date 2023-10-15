@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"flag"
 	"fmt"
+	"github.com/go-audio/wav"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"io/ioutil"
 	"log"
@@ -15,6 +17,8 @@ import (
 	stt "voicesummary/stt"
 )
 
+var cfg *config.Config
+
 func main() {
 	// Define a string flag for the configuration file path
 	configPath := flag.String("config", "config.yaml", "Path to the configuration file")
@@ -23,24 +27,25 @@ func main() {
 	flag.Parse()
 
 	// Use the flag value
-	config, err := config.GetConfigFromFile(*configPath)
+	var err error
+	cfg, err = config.GetConfigFromFile(*configPath)
 	if err != nil {
 		log.Fatalf("Failed to get config: %v", err)
 	}
 
 	// Create a new Telegram bot
-	bot, err := initializeBot(config.TelegramBotToken)
+	bot, err := initializeBot(cfg.TelegramBotToken)
 	if err != nil {
 		log.Fatalf("Failed to create Telegram bot: %v", err)
 	}
 
 	ctx := context.Background()
 	// Start processing updates
-	stg, err := storage.NewRealStorage(ctx, config)
+	stg, err := storage.NewRealStorage(ctx, cfg)
 	if err != nil {
 		log.Fatalf("Failed to create storage: %v", err)
 	}
-	speechToText, err := stt.NewGoogleSpeechToText(ctx, config)
+	speechToText, err := stt.NewGoogleSpeechToText(ctx, cfg)
 	if err != nil {
 		log.Fatalf("Failed to create speechToText: %v", err)
 	}
@@ -96,8 +101,43 @@ func getAudioData(bot *tgbotapi.BotAPI, audioFile *tgbotapi.File) ([]byte, error
 	return oggData, nil
 }
 
+func getWavDuration(wavData []byte) (float64, error) {
+	// Initialize a new WAV decoder
+	decoder := wav.NewDecoder(bytes.NewReader(wavData))
+
+	// Check if the WAV file is valid
+	if !decoder.IsValidFile() {
+		return 0, fmt.Errorf("invalid WAV file")
+	}
+
+	dur, err := decoder.Duration()
+	if err != nil {
+		return 0, fmt.Errorf("failed to get duration: %+v", err)
+	} else {
+		return dur.Seconds(), nil
+	}
+}
+
+func checkUser(update tgbotapi.Update) bool {
+	for _, user := range cfg.Usernames {
+		if update.Message.From.UserName == user {
+			return true
+		}
+	}
+
+	return false
+}
+
 func processMessage(ctx context.Context, update tgbotapi.Update, bot *tgbotapi.BotAPI, stg storage.Storage, speechToText stt.SpeechToText) {
 	log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
+
+	if !checkUser(update) {
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "You are not allowed to use this bot")
+		bot.Send(msg)
+
+		log.Printf("User %s is not allowed to use the bot", update.Message.From.UserName)
+		return
+	}
 
 	audioFileID := getFileId(update)
 	var file tgbotapi.File
@@ -120,17 +160,32 @@ func processMessage(ctx context.Context, update tgbotapi.Update, bot *tgbotapi.B
 		return
 	}
 
-	uri, err := stg.StoreFile(ctx, wavData)
+	duration, err := getWavDuration(wavData)
 	if err != nil {
-		log.Printf("Failed to store audio file: %v", err)
+		log.Printf("Failed to get WAV duration: %v", err)
 		return
 	}
-	defer stg.ClearFile(ctx, uri)
 
-	text, err := speechToText.RecognizeSpeechFromFile(ctx, uri)
-	if err != nil {
-		log.Printf("Failed to recognize speech: %v", err)
-		return
+	var text string
+	if duration > 60 {
+		uri, err := stg.StoreFile(ctx, wavData)
+		if err != nil {
+			log.Printf("Failed to store audio file: %v", err)
+			return
+		}
+		defer stg.ClearFile(ctx, uri)
+
+		text, err = speechToText.RecognizeSpeechFromFile(ctx, uri)
+		if err != nil {
+			log.Printf("Failed to recognize speech: %v", err)
+			return
+		}
+	} else {
+		text, err = speechToText.RecognizeSpeech(ctx, wavData)
+		if err != nil {
+			log.Printf("Failed to recognize speech: %v", err)
+			return
+		}
 	}
 
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, text)

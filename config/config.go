@@ -18,11 +18,12 @@ const (
 )
 
 type Config struct {
-	TelegramBotToken           string `yaml:"telegram_bot_token"`
-	GoogleSpeechApiKey         string `yaml:"google_speech_api_key"`
-	GoogleSpeechProjectId      string `yaml:"google_speech_project_id"`
-	GoogleSpeechRecognizerName string `yaml:"google_speech_recognizer_name"`
-	GoogleStorageBucket        string `yaml:"google_storage_bucket"`
+	TelegramBotToken           string   `yaml:"telegram_bot_token"`
+	GoogleSpeechApiKey         string   `yaml:"google_speech_api_key"`
+	GoogleSpeechProjectId      string   `yaml:"google_speech_project_id"`
+	GoogleSpeechRecognizerName string   `yaml:"google_speech_recognizer_name"`
+	GoogleStorageBucket        string   `yaml:"google_storage_bucket"`
+	Usernames                  []string `yaml:"usernames"`
 }
 
 func (c *Config) GetCredentialsOption() option.ClientOption {
