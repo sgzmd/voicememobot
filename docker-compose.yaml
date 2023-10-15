@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  voicememobot:
+    image: ghcr.io/sgzmd/voicememobot:latest
+    container_name: voicememobot
+    command: ["--config", "/root/config.yaml"]
+    volumes:
+      - ./config.yaml:/root/config.yaml
