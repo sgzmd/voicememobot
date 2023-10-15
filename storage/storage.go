@@ -7,8 +7,8 @@ import (
 )
 
 type Storage interface {
-	StoreFile(ctx context.Context, bucket string, data []byte) (string, error)
-	ClearFile(ctx context.Context, bucket, name string) error
+	StoreFile(ctx context.Context, data []byte) (string, error)
+	ClearFile(ctx context.Context, name string) error
 }
 
 func NewRealStorage(ctx context.Context, conf *config.Config) (*RealStorage, error) {

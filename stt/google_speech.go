@@ -17,7 +17,7 @@ type GoogleSpeechToText struct {
 }
 
 func (r *GoogleSpeechToText) getSpeechClient(_ context.Context) *speech.Client {
-	return client
+	return r.client
 }
 
 func (r *GoogleSpeechToText) createRecognizerName() string {

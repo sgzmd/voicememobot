@@ -4,10 +4,10 @@ import "context"
 
 type FakeStorage struct{}
 
-func (m *FakeStorage) StoreFile(_ context.Context, fileName string, _ []byte) (string, error) {
-	return "gs://voice-memo-files-sgzmd/" + fileName, nil
+func (m *FakeStorage) StoreFile(_ context.Context, _ []byte) (string, error) {
+	return "gs://voice-memo-files-sgzmd/myfile", nil
 }
 
-func (m *FakeStorage) ClearFile(_ context.Context, _, _ string) error {
+func (m *FakeStorage) ClearFile(_ context.Context, _ string) error {
 	return nil
 }
