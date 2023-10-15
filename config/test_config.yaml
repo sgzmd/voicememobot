@@ -1,0 +1,5 @@
+telegram_bot_token: "sample_bot_token"
+google_speech_api_key: "sample_api_key"
+google_speech_project_id: "sample_project_id"
+google_speech_recognizer_name: "sample_recognizer_name"
+google_storage_bucket: "sample_storage_bucket"
