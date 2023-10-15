@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/go-audio/wav"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -90,7 +90,7 @@ func (bp *BotProcessor) getAudioData(audioFile *tgbotapi.File) ([]byte, error) {
 	defer resp.Body.Close()
 
 	// Read the audio file content.
-	oggData, err := ioutil.ReadAll(resp.Body)
+	oggData, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read audio file content: %v", err)
 	}
