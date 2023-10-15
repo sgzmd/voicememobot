@@ -9,8 +9,11 @@ import (
 )
 
 var cfg *config.Config
+var gitRevision = "development"
 
 func main() {
+	log.Printf("Running app version %s\n", gitRevision)
+
 	// Define a string flag for the configuration file path
 	configPath := flag.String("config", "config.yaml", "Path to the configuration file")
 
