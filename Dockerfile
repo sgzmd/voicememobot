@@ -1,5 +1,5 @@
 # Step 1: Build Binary
-FROM golang:1.17 as builder
+FROM golang:1.21 as builder
 
 WORKDIR /app
 
@@ -13,14 +13,13 @@ ARG GIT_REVISION=development
 
 # Run tests and build with the git revision as a linker flag
 RUN go test -v ./... && \
-    CGO_ENABLED=0 GOOS=linux go build -ldflags="-X main.gitRevision=$GIT_REVISION" -o main .
+    go build -ldflags="-X main.gitRevision=$GIT_REVISION" -o main cmd/main.go
 
 # Step 2: Create Executable Image
-FROM debian:buster-slim
+FROM alpine:3.18.4
 
-RUN apt-get update && \
-    apt-get install -y ffmpeg && \
-    rm -rf /var/lib/apt/lists/*
+# Install ffmpeg and ca-certificates
+RUN apk --no-cache add ffmpeg ca-certificates
 
 WORKDIR /root/
 COPY --from=builder /app/main .
