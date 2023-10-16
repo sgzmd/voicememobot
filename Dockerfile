@@ -1,5 +1,7 @@
+# docker build -t voicememobot --build-arg  GIT_REVISION=$(git rev-parse HEAD) .
+
 # Step 1: Build Binary
-FROM golang:1.21 as builder
+FROM golang:1.21-alpine as builder
 
 WORKDIR /app
 
@@ -19,9 +21,9 @@ RUN go test -v ./... && \
 FROM alpine:3.18.4
 
 # Install ffmpeg and ca-certificates
-RUN apk --no-cache add ffmpeg ca-certificates
+RUN apk --no-cache add ffmpeg ca-certificates bash
 
-WORKDIR /root/
-COPY --from=builder /app/main .
+WORKDIR /root
+COPY --from=builder /app/main /root/main
 
-ENTRYPOINT ["./main"]
+ENTRYPOINT ["/root/main"]

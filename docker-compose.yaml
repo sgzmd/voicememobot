@@ -7,3 +7,4 @@ services:
     command: ["--config", "/root/config.yaml"]
     volumes:
       - ./config.yaml:/root/config.yaml
+      - ./key.json:/root/key.json
