@@ -1,13 +1,14 @@
 package stt
 
 import (
-	speech "cloud.google.com/go/speech/apiv2"
-	"cloud.google.com/go/speech/apiv2/speechpb"
 	"context"
 	"log"
 	"sync"
 	"time"
 	"voicesummary/config"
+
+	speech "cloud.google.com/go/speech/apiv2"
+	"cloud.google.com/go/speech/apiv2/speechpb"
 )
 
 type GoogleSpeechToText struct {
@@ -117,7 +118,9 @@ func extractTranscripts(resp *speechpb.BatchRecognizeResponse, filePath string) 
 	result := ""
 	transcripts := resp.Results[filePath].Transcript.Results
 	for _, transcript := range transcripts {
-		result += transcript.Alternatives[0].Transcript + "\n"
+		if len(transcript.Alternatives) > 0 {
+			result += transcript.Alternatives[0].Transcript + "\n"
+		}
 	}
 	return result
 }
